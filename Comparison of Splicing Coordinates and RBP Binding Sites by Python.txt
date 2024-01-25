@@ -1,0 +1,100 @@
+import pandas as pd
+import csv
+
+# Load data in rbp_data
+rbp_data = pd.read_csv("/Users/shengweixiong/Desktop/Fake_rbp_binding_Book1.csv")
+
+
+# Extract chromosome, start, and end columns
+chromosomes = rbp_data['chromosome'].tolist()
+rbp_start_positions = rbp_data['start'].tolist()
+rbp_end_positions = rbp_data['end'].tolist()
+
+# Print or use the extracted data as needed
+# print("Chromosomes:", chromosomes)
+# print("RBP Start Positions:", rbp_start_positions)
+# print("RBP End Positions:", rbp_end_positions)
+
+# Load data in spliced_data. 
+spliced_data = pd.read_csv("/Users/shengweixiong/Desktop/Fake_splicing.csv")
+
+# Lists to hold seqid, start, and end coordinates
+seqids = []
+start_coordinates = []
+end_coordinates = []
+
+# Iterate through the rows in the spliced_data DataFrame
+for index, row in spliced_data.iterrows():
+    spliced_with_coord = row['spliced_with_coord']
+    seqid = row['seqid']
+
+# Check if the spliced_with_coord contains '_', is 'na', or has negative ranges
+    if '_' in spliced_with_coord or 'na' in spliced_with_coord or '-' in spliced_with_coord:
+        parts = spliced_with_coord.split('-')
+        if len(parts) != 2:
+            continue  # Skip the row if it contains '_', 'na', or has too many hyphens
+
+        start, end = parts
+        if start.startswith('-') or end.startswith('-'):
+            continue  # Skip the row if it has negative ranges
+
+# Check if 'na' is present in the spliced_with_coord
+    if 'na' in spliced_with_coord:
+        continue  # Skip the row if it contains 'na'
+
+# Split the spliced_with_coord string into start and end coordinates
+    coord_parts = spliced_with_coord.split('-')
+    if len(coord_parts) != 2:
+        continue  # Skip the row if it doesn't have exactly two parts
+
+    start_coord_str, end_coord_str = coord_parts
+    if not start_coord_str or not end_coord_str:
+        continue  # Skip the row if any part is empty
+
+    # Extract start and end coordinates
+    start_coord = int(spliced_with_coord.split('-')[0])
+    end_coord = int(spliced_with_coord.split('-')[1])
+
+    # Append to the lists
+    seqids.append(seqid)
+    start_coordinates.append(start_coord)
+    end_coordinates.append(end_coord)
+
+# Print or use the extracted data as needed
+# print("Seqids:", seqids)
+# print("Start Coordinates:", start_coordinates)
+# print("End Coordinates:", end_coordinates)
+
+# Lists to hold matched RBPs and their corresponding ranges
+matched_rbps = []
+matched_ranges = []
+
+# Iterate through the rows in the rbp_data DataFrame
+for index, row in rbp_data.iterrows():
+    rbp_start = row['start']
+    rbp_end = row['end']
+
+   # Check if RBP start and end coordinates fall within the specified range
+    for spliced_start, spliced_end, seqid in zip(start_coordinates, end_coordinates, seqids):
+        if chromosomes[index] == seqid and spliced_start <= rbp_start <= spliced_end and spliced_start <= rbp_end <= spliced_end:
+            matched_rbps.append(seqid)
+            matched_ranges.append(f"{spliced_start}-{spliced_end}")
+        elif chromosomes[index] == seqid and spliced_start <= rbp_start <= spliced_end and spliced_end <= rbp_end:
+            matched_rbps.append
+            matched_ranges.append(f"{spliced_start}-{spliced_end}")
+        elif chromosomes[index] == seqid and spliced_start <= rbp_end <= spliced_end and spliced_start <= rbp_start:
+            matched_rbps.append
+            matched_ranges.append(f"{spliced_start}-{spliced_end}")
+        elif chromosomes[index] == seqid and spliced_start >= rbp_start and spliced_end <= rbp_start:
+            matched_rbps.append
+            matched_ranges.append(f"{spliced_start}-{spliced_end}")
+        
+
+# Print or use the extracted matched data as needed
+print("Matched RBPs:", matched_rbps)
+print("Matched Ranges:", matched_ranges)
+
+# Write results to a CSV file
+with open("/Users/shengweixiong/Desktop/output.csv", 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerows(zip(matched_rbps, matched_ranges))

@@ -1,0 +1,15 @@
+#Add header names
+header = ['chromosome', 'start', 'end', 'peak_id', 'strandness', 'RBP_name', 'experiment_method', 'tissue_used', 'accession']
+
+# Specify the original and new file names
+original_file_path = '/Users/shengweixiong/Desktop/ALL_binding_sites_of RBPs_human.txt'
+new_file_path = '/Users/shengweixiong/Desktop/your_new_file.txt'
+
+# Write the header to the new file
+with open(new_file_path, 'w') as new_file:
+    new_file.write('\t'.join(header) + '\n')
+
+# Append the contents of the original file to the new file
+with open(original_file_path, 'r') as original_file, open(new_file_path, 'a') as new_file:
+    for line in original_file:
+        new_file.write(line)

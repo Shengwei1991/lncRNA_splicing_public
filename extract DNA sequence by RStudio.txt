@@ -1,0 +1,35 @@
+#install BSgenome.Hsapiens.UCSC.hg38 and BiocManager library
+#install BSgenome.Hsapiens.UCSC.hg38 
+
+if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE)) {
+  BiocManager::install("BSgenome.Hsapiens.UCSC.hg38")
+}
+
+library(BSgenome.Hsapiens.UCSC.hg38)
+
+# Instal Biostrings
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+BiocManager::install("Biostrings", force = TRUE)
+library(Biostrings)
+
+#Code to extract sequence and save it in a text file with FASTA format:
+# Get DNA sequence
+my.dnastring_1 <- DNAString(getSeq(BSgenome.Hsapiens.UCSC.hg38, "chr11", 6603822, 6604226))
+my.dnastring_2 <- DNAString(getSeq(BSgenome.Hsapiens.UCSC.hg38, "chr11", 6603877, 6604180))
+my.dnastring_3 <- DNAString(getSeq(BSgenome.Hsapiens.UCSC.hg38, "chr11", 6603877, 6604180))
+my.dnastring_4 <- DNAString(getSeq(BSgenome.Hsapiens.UCSC.hg38, "chr11", 6603822, 6604226))
+
+# Create a named list
+named_list <- list(sequence_1 = my.dnastring_1, sequence_2 = my.dnastring_2, sequence_3 = my.dnastring_3, sequence_4 = my.dnastring_4)
+
+# Convert the named list to DNAStringSet
+combined_dnastring <- DNAStringSet(named_list)
+
+# Specify the output file path (including the file name)
+output_file_txt <- "/Volumes/jonesylab/Projects/CurrentLabMembers/Shengwei_Xiong/MAJIQ_Project/hnRNP/hnRNPA0/HepG2/output/modulized/alt3and5prime_lnc-RRP8-1.txt"
+
+# Extract sequences and write to a TXT file
+writeXStringSet(combined_dnastring, file = output_file_txt, format = "fasta")

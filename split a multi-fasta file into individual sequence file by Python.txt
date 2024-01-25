@@ -1,0 +1,23 @@
+#split a multi-fasta file into individual sequence file
+def create_sequence_files(input_file):
+    with open(input_file, 'r') as file:
+        lines = file.readlines()
+
+    current_sequence = None
+
+    for line in lines:
+        if line.startswith('>'):
+            # Extract sequence header and create a new file
+            sequence_header = line.strip()[1:]
+            current_sequence = open(f"{sequence_header}.txt", 'w')
+            current_sequence.write(line)
+        elif current_sequence:
+            # Write the current line and the next one into the file
+            current_sequence.write(line)
+
+    # Close the last file
+    if current_sequence:
+        current_sequence.close()
+
+
+create_sequence_files('/Users/shengweixiong/Desktop/alt3and5prime_lnc-ZNF362-1.txt')
