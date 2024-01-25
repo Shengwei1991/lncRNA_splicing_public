@@ -73,21 +73,23 @@ matched_ranges = []
 for index, row in rbp_data.iterrows():
     rbp_start = row['start']
     rbp_end = row['end']
+    rbp_name = row['RBP_name']  # Extract RBP name from the row
 
-   # Check if RBP start and end coordinates fall within the specified range
-    for spliced_start, spliced_end, seqid in zip(start_coordinates, end_coordinates, seqids):
-        if chromosomes[index] == seqid and spliced_start <= rbp_start <= spliced_end and spliced_start <= rbp_end <= spliced_end:
-            matched_rbps.append(seqid)
-            matched_ranges.append(f"{spliced_start}-{spliced_end}")
-        elif chromosomes[index] == seqid and spliced_start <= rbp_start <= spliced_end and spliced_end <= rbp_end:
-            matched_rbps.append
-            matched_ranges.append(f"{spliced_start}-{spliced_end}")
-        elif chromosomes[index] == seqid and spliced_start <= rbp_end <= spliced_end and spliced_start <= rbp_start:
-            matched_rbps.append
-            matched_ranges.append(f"{spliced_start}-{spliced_end}")
-        elif chromosomes[index] == seqid and spliced_start >= rbp_start and spliced_end <= rbp_start:
-            matched_rbps.append
-            matched_ranges.append(f"{spliced_start}-{spliced_end}")
+    #Check if the RBP is 'HNRNPA1'. Check if RBP start and end coordinates fall within the specified range
+    if rbp_name == 'HNRNPA1':
+        for spliced_start, spliced_end, seqid in zip(start_coordinates, end_coordinates, seqids):
+            if chromosomes[index] == seqid and spliced_start <= rbp_start <= spliced_end and spliced_start <= rbp_end <= spliced_end:
+                matched_rbps.append(seqid)
+                matched_ranges.append(f"{spliced_start}-{spliced_end}")
+            elif chromosomes[index] == seqid and spliced_start <= rbp_start <= spliced_end and spliced_end <= rbp_end:
+                matched_rbps.append(seqid)
+                matched_ranges.append(f"{spliced_start}-{spliced_end}")
+            elif chromosomes[index] == seqid and spliced_start <= rbp_end <= spliced_end and spliced_start <= rbp_start:
+                matched_rbps.append(seqid)
+                matched_ranges.append(f"{spliced_start}-{spliced_end}")
+            elif chromosomes[index] == seqid and spliced_start >= rbp_start and spliced_end <= rbp_start:
+                matched_rbps.append(seqid)
+                matched_ranges.append(f"{spliced_start}-{spliced_end}")
         
 
 # Print or use the extracted matched data as needed
