@@ -1,0 +1,48 @@
+library(BSgenome.Hsapiens.UCSC.hg38)
+library(Biostrings)
+
+# File path to your CSV file
+#file_path <- "/Volumes/jonesylab/Projects/CurrentLabMembers/Shengwei_Xiong/MAJIQ_Project/hnRNP/hnRNPA0/HepG2/output/modulized/alt3prime.tsv.csv"
+file_path <- "/Users/shengweixiong/Desktop/alt3prime.tsv.csv"
+
+# Read the CSV file
+data <- read.csv(file_path, sep=',')
+#head(data)
+
+# Extracting seqid and junction_coord columns
+seqid <- data$seqid
+junction_coord <- data$junction_coord
+
+# Print the extracted seqid and junction_coord
+print(seqid)
+print(junction_coord)
+
+# Initialize an empty list to store DNA sequences
+sequence_list <- list()
+
+# Iterate over seqid and junction_coord to extract sequences
+for (i in 1:length(seqid)) {
+  chr <- seqid[i]
+  coords <- unlist(strsplit(junction_coord[i], "-"))
+  start <- as.numeric(coords[1])
+  end <- as.numeric(coords[2])
+  
+  # Extract DNA sequence
+  dna_sequence <- DNAString(getSeq(BSgenome.Hsapiens.UCSC.hg38, chr, start, end))
+  
+  # Assign the sequence to the list with a meaningful name
+  sequence_name <- paste(chr, start, end, sep = "_")
+  sequence_list[[sequence_name]] <- dna_sequence
+}
+
+# Convert the list to DNAStringSet
+combined_dnastring <- DNAStringSet(sequence_list)
+
+# Specify the output file path (including the file name)
+output_file_txt <- "/Users/shengweixiong/Desktop/alt3prime_sequences.txt"
+
+# Extract sequences and write to a TXT file
+writeXStringSet(combined_dnastring, file = output_file_txt, format = "fasta")
+
+# Print a message indicating the process is complete
+cat("Sequences extracted and written to:", output_file_txt, "\n")
