@@ -22,8 +22,8 @@ sequence_list <- list()
 # Iterate over seqid and junction_coord to extract sequences
 for (i in 1:length(seqid)) {
   # Check if junction_coord is not "False" or "True" and is a valid range
-  if (junction_coord[i] != "False" && junction_coord[i] != "True" &&
-      !is.na(junction_coord[i]) && !grepl(",", junction_coord[i])) {
+  if (junction_coord[i] != "False" & junction_coord[i] != "True" &
+      !is.na(junction_coord[i]) & !grepl(",", junction_coord[i])) {
     chr <- seqid[i]
     coords <- unlist(strsplit(junction_coord[i], "-"))
     
