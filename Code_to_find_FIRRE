@@ -1,0 +1,50 @@
+# Set the directory where your CSV files are located
+mydir <- "/Volumes/jonesylab/Projects/CurrentLabMembers/Shengwei_Xiong/MAJIQ_Project/SRSF/SRSF9/HepG2/output/modulized"
+
+# Get a list of CSV files in the directory
+csv_files <- list.files(mydir, pattern = "[.]csv$", full.names = TRUE)
+
+# Function to check if any cell in the 'lncRNAname' column contains "FIRRE"
+check_for_firre <- function(file_path) {
+  # Read the first line of the file to check if it contains a header
+  first_line <- readLines(file_path, n = 1)
+  if (length(first_line) == 0) {
+    result <- paste("Empty file:", file_path)
+    return(result)
+  }
+  
+  # Check if the file has a header
+  has_header <- length(unlist(strsplit(first_line, ","))) > 1
+  
+  if (!has_header) {
+    result <- paste("No header found in file:", file_path)
+    return(result)
+  }
+  
+  data <- read.csv(file_path, header = TRUE, stringsAsFactors = FALSE)
+  
+  # Check if 'lncRNAname' column exists
+  if ("lncRNAname" %in% colnames(data)) {
+    firre_found <- any(grepl("FIRRE", data$lncRNAname, ignore.case = TRUE))
+    
+    if (firre_found) {
+      result <- paste("FIRRE found in file:", file_path)
+    } else {
+      result <- paste("FIRRE not found in file:", file_path)
+    }
+  } else {
+    result <- paste("No 'lncRNAname' column found in file:", file_path)
+  }
+  
+  return(result)
+}
+
+# Apply the function to each CSV file
+results <- lapply(csv_files, check_for_firre)
+
+# Print the results
+for (res in results) {
+  print(res)
+}
+
+
