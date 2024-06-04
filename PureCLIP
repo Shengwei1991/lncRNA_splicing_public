@@ -1,0 +1,55 @@
+Optimized procedures for PuruCLIP and MEME: 
+#The following procedures are only for one cell line. You need to repeat for another cell line. 
+#Download the processed bam files (rep1 and rep2, GRCh38). Those files only need to be processed for Pooling and R2 retrieval. #Then, can be used for clip analysis by pureclip. 
+wget -O hnRNPU_HepG2_test/aligned.f.duplRm.bam_1 https://www.encodeproject.org/files/ENCFF587PLY/@@download/ENCFF587PLY.bam
+wget -O hnRNPU_HepG2_test/aligned.f.duplRm.bam_2 https://www.encodeproject.org/files/ENCFF125EPG/@@download/ENCFF125EPG.bam
+#wget -O /scratch/sx720/RBM22_K562/RNA-seq/ENCFF487ZNA https://www.encodeproject.org/files/ENCFF487ZNA/@@download/ENCFF487ZNA.bam
+
+#Pooling and R2 retrievalwith samtools 
+samtools merge -f aligned.f.duplRm.pooled.bam ENCFF125EPG.bam ENCFF587PLY.bam
+samtools view -hb -f 130 aligned.f.duplRm.pooled.bam -o aligned.f.duplRm.pooled.R2.bam
+samtools index aligned.f.duplRm.pooled.R2.bam
+
+#Quality check by fastqc. Go to fastqc folder and run fastqc by perl script on linux 
+perl fastqc
+#then you can check aligned.f.duplRm.pooled.R2.bam
+
+#PureClip with control
+wget -O input.aligned.prepro.bam https://www.encodeproject.org/files/ENCFF188FGR/@@download/ENCFF188FGR.bam
+samtools view -hb -f 130 input.aligned.prepro.bam -o input.aligned.prepro.R2.bam
+samtools index input.aligned.prepro.R2.bam  
+
+#run PureCLIP with input control data
+pureclip -i aligned.f.duplRm.pooled.R2.bam -bai aligned.f.duplRm.pooled.R2.bam.bai -g /scratch/sx720/ref.GRCh38.fa -o PureCLIP.crosslink_sites.cov_inputSignal.bed -ibam input.aligned.prepro.R2.bam -ibai input.aligned.prepro.R2.bam.bai -nt 10 -iv 'chr1;chr2;chr3;chr4;chr5' -bc 1 -dm 8 > out.txt
+
+
+#Finding Intersections Between Genome Interval Files
+bedtools intersect -a PureCLIP.crosslink_sites.cov_inputSignal.bed -b gencode.v45.chr_patch_hapl_scaff.annotation.bed > intersect_K562.bed
+bedtools intersect -a PureCLIP.crosslink_sites.cov_inputSignal_2.bed -b gencode.v45.chr_patch_hapl_scaff.annotation.bed > intersect_HepG2.bed
+
+#Sorting and Merging with bedtools
+sort -k1,1 -k2,2n intersect_K562.bed > intersect_K562.sorted.bed
+bedtools merge -i intersect_K562.sorted.bed > merged_intersect_K562.sorted.bed
+
+sort -k1,1 -k2,2n intersect_HepG2.bed > intersect_HepG2.sorted.bed
+bedtools merge -i intersect_HepG2.sorted.bed > merged_intersect_HepG2.sorted.bed
+
+#To ensure proper normalization over background, bedtools multicov was used
+bedtools multicov -bams aligned.f.duplRm.pooled.R2.bam -bed merged_intersect_K562.sorted.bed > K562_multicov.bed
+bedtools multicov -bams aligned.f.duplRm.pooled.R2_2.bam -bed merged_intersect_HepG2.sorted.bed > HepG2_multicov.bed
+#Bam files have already been sorted and indexed in the previous step. 
+
+#Then, use the following code to add 4 nts
+bedtools slop -i K562_multicov.bed -g ref.GRCh38.fa.fai -b 4 > add_4_K562_multicov.bed
+bedtools slop -i HepG2_multicov.bed -g ref.GRCh38.fa.fai -b 4 > add_4_HepG2_multicov.bed
+
+#To convert a bed file to fasta
+bedtools getfasta -fi ref.GRCh38.fa  -bed add_4_K562_multicov.bed -s -fo add_4_K562_multicov.fasta
+bedtools getfasta -fi ref.GRCh38.fa  -bed add_4_HepG2_multicov.bed -s -fo add_4_HepG2_multicov.fasta 
+
+#STREME analysis code (with the following settings: first-order background, 0.05 p-value threshold, motif minimum width = 4 nt)
+fasta-get-markov -m 1 -rna add_4_K562_multicov.fasta K562_markov
+streme --verbosity 1 --oc K562 --rna --time 14400 --bfile K562_markov --order 1 --nmotifs 3 --minw 4 --thresh 0.05 --align center --p add_4_K562_multicov.fasta
+
+fasta-get-markov -m 1 -rna add_4_HepG2_multicov.fasta HepG2_markov
+streme --verbosity 1 --oc HepG2 --rna --time 14400 --bfile HepG2_markov --order 1 --nmotifs 3 --minw 4 --thresh 0.05 --align center --p add_4_HepG2_multicov.fasta
